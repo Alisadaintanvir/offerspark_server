@@ -6,7 +6,7 @@ type KeyType =
   | "ANALYTICS"
   | "USER"
   | "ROLE"
-  | "SUPPORT";
+  | "PERMISSION";
 type SubKeysType = "CREATE" | "READ" | "UPDATE" | "DELETE";
 
 export type PermissionsType = {
@@ -58,7 +58,7 @@ export const PERMISSIONS: PermissionsType = {
     UPDATE: "163",
     DELETE: "164",
   },
-  SUPPORT: {
+  PERMISSION: {
     CREATE: "171",
     READ: "172",
     UPDATE: "173",

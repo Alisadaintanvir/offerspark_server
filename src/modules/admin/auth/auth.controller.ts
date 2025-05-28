@@ -65,14 +65,14 @@ export const postLogin = async (
   }
 
   // Extract role name and permissions
-  //   const roleName = existingAdmin.role?.name;
-  //   const permissions = existingAdmin.role.permissions;
+  const roleName = existingAdmin.role?.name;
+  const permissions = existingAdmin.role.permissions;
 
   const tokenData = {
     id: existingAdmin._id + "",
     email,
-    // role: roleName,
-    // permissions,
+    role: roleName,
+    permissions,
   };
 
   // Generate access token
@@ -81,7 +81,7 @@ export const postLogin = async (
   // Save access token in cookie
   saveAccessTokenInCookie(res, accessToken);
 
-  res.json({
+  res.status(201).json({
     message: "Login successful",
     data: transformAdminData(existingAdmin),
     accessToken,

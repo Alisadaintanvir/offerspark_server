@@ -1,1 +1,1 @@
-export const BCRYPT_SALT_ROUNDS = 10;
+export const BCRYPT_SALT_ROUNDS = 12;

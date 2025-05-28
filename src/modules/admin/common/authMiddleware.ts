@@ -41,3 +41,38 @@ export const authenticateToken = async (
     );
   }
 };
+
+// Check Permissions
+export const checkPermissions = (requiredPermissions: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      const { user } = req as any;
+
+      // Ensure user exists
+      if (!user) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+
+      const isAdmin = user.role === "admin" || "super_admin";
+      if (isAdmin) {
+        return next();
+      }
+
+      // Extract role and permissions from JWT (set in authenticateToken)
+      const userPermissions = user.permissions;
+
+      if (
+        !userPermissions ||
+        !requiredPermissions.every((p) => userPermissions.includes(p))
+      ) {
+        return next({ status: 403, message: "Access denied" });
+      }
+
+      return next();
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+};
