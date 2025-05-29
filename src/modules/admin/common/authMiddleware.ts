@@ -54,8 +54,8 @@ export const checkPermissions = (requiredPermissions: string[]) => {
         return;
       }
 
-      const isAdmin = user.role === "admin" || "super_admin";
-      if (isAdmin) {
+      const isSuperAdmin = user.isSuperAdmin;
+      if (isSuperAdmin) {
         return next();
       }
 

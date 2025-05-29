@@ -65,12 +65,14 @@ export const postLogin = async (
   }
 
   // Extract role name and permissions
+  const isSuperAdmin = existingAdmin.is_super_admin;
   const roleName = existingAdmin.role?.name;
-  const permissions = existingAdmin.role.permissions;
+  const permissions = existingAdmin?.role?.permissions;
 
   const tokenData = {
     id: existingAdmin._id + "",
     email,
+    isSuperAdmin,
     role: roleName,
     permissions,
   };
