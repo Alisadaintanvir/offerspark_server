@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { postLogin, getMe, postLogout } from "./auth.controller";
+import {
+  postLogin,
+  getMe,
+  postLogout,
+  postRefreshToken,
+} from "./auth.controller";
 import withErrorHandling from "@/utility/withErrorHandling";
 import { loginValidation } from "./auth.validator";
 import { validationHandler } from "@/helpers/errorHandler";
@@ -19,5 +24,8 @@ router.post(
 
 // Logout route
 router.post("/logout", authenticateToken, withErrorHandling(postLogout));
+
+// Refresh token route
+router.post("/refresh-token", withErrorHandling(postRefreshToken));
 
 export default router;

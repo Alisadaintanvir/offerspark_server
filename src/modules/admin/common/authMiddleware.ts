@@ -18,7 +18,11 @@ export const authenticateToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  const authToken = req.cookies.accessToken;
+  let authToken = null;
+  const authHeader = req.headers["authorization"];
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    authToken = authHeader.substring(7);
+  }
 
   if (!authToken) {
     return next(createError(401, "Unauthorized user"));
@@ -32,8 +36,10 @@ export const authenticateToken = async (
     }
 
     req.user = decoded;
+
     next();
   } catch (error: any) {
+    // console.log("error", error);
     return next(
       createError(401, "Unauthorized user", {
         errors: error.errors || undefined,

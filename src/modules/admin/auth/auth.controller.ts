@@ -5,7 +5,9 @@ import createHttpError from "http-errors";
 import bcrypt from "bcryptjs";
 import {
   generateAccessToken,
-  saveAccessTokenInCookie,
+  generateRefreshToken,
+  saveRefreshTokenInCookie,
+  verifyRefreshToken,
 } from "@/helpers/tokenService";
 
 // Transform admin data to exclude sensitive information
@@ -14,6 +16,7 @@ const transformAdminData = (admin: any) => {
     password,
     password_reset_token,
     password_reset_expires,
+    refreshToken,
     ...adminData
   } = admin.toObject();
   return adminData;
@@ -79,9 +82,15 @@ export const postLogin = async (
 
   // Generate access token
   const accessToken = generateAccessToken(tokenData);
+  // Generate refresh token
+  const refreshToken = generateRefreshToken(tokenData);
 
-  // Save access token in cookie
-  saveAccessTokenInCookie(res, accessToken);
+  // Save refresh token in DB
+  existingAdmin.refreshToken = refreshToken;
+  await existingAdmin.save();
+
+  // Save tokens in cookies
+  saveRefreshTokenInCookie(res, refreshToken);
 
   res.status(201).json({
     message: "Login successful",
@@ -96,14 +105,75 @@ export const postLogout = async (
   res: Response,
   next: NextFunction
 ) => {
-  // Clear the access token cookie
-  res.clearCookie("accessToken", {
+  // Clear the refresh token cookie
+  res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   });
 
+  // Remove refresh token from DB if present
+  const refreshToken = req.cookies?.refreshToken;
+  if (refreshToken) {
+    try {
+      const payload = verifyRefreshToken(refreshToken);
+      const admin = await Admin.findById(payload.id);
+      if (admin && admin.refreshToken === refreshToken) {
+        admin.refreshToken = undefined;
+        await admin.save();
+      }
+    } catch (err) {
+      // Ignore errors: token may be invalid/expired
+    }
+  }
+
   res.status(200).json({
     message: "Logout successful",
+  });
+};
+
+// Refresh Token endpoint
+export const postRefreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+  if (!refreshToken) {
+    return next(createHttpError(401, "Refresh token missing"));
+  }
+  let payload;
+  try {
+    payload = verifyRefreshToken(refreshToken);
+  } catch (err) {
+    return next(createHttpError(403, "Invalid refresh token"));
+  }
+  const admin = await Admin.findById(payload.id).populate<{ role: IRole }>(
+    "role"
+  );
+  if (!admin || admin.refreshToken !== refreshToken) {
+    return next(createHttpError(403, "Refresh token not recognized"));
+  }
+
+  // Build a fresh payload from the latest admin data
+  const tokenData = {
+    id: admin._id + "",
+    email: admin.email,
+    isSuperAdmin: admin.is_super_admin,
+    role: admin.role?.name,
+    permissions: admin.role?.permissions,
+  };
+
+  // Replace old refresh token with a new one (rotation)
+  const newRefreshToken = generateRefreshToken(tokenData);
+  admin.refreshToken = newRefreshToken;
+  await admin.save();
+  saveRefreshTokenInCookie(res, newRefreshToken);
+  const newAccessToken = generateAccessToken(tokenData);
+
+  res.status(200).json({
+    message: "Token refreshed",
+    accessToken: newAccessToken,
   });
 };

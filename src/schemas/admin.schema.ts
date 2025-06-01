@@ -13,6 +13,7 @@ interface IAdmin extends Document {
   password_reset_token?: string;
   password_reset_expires?: Date;
   status: string;
+  refreshToken?: string;
 }
 
 // Define the ADMIN schema
@@ -22,7 +23,7 @@ const adminSchema = new Schema<IAdmin>(
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String },
-    role: { type: Schema.Types.ObjectId, ref: "Role", required: true },
+    role: { type: Schema.Types.ObjectId, ref: "Role", default: null },
     is_super_admin: { type: Boolean, default: false },
     dob: { type: Date },
     profile_avatar: { type: String },
@@ -34,6 +35,7 @@ const adminSchema = new Schema<IAdmin>(
       required: true,
       enum: ["not_verified", "active", "banned"],
     },
+    refreshToken: { type: String },
   },
   {
     timestamps: true,
