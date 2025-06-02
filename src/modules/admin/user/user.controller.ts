@@ -46,7 +46,25 @@ export const deleteUser = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const currentUserId = (req.user as any).id;
+  const targetUserId = req.params.id;
+
+  if (currentUserId === targetUserId) {
+    return next(httpError(403, "You cannot delete yourself"));
+  }
+
+  const user = await Admin.findById(targetUserId);
+  if (!user) {
+    return next(httpError(404, "User not found"));
+  }
+
+  await Admin.findByIdAndDelete(targetUserId);
+
+  res.status(200).json({
+    message: "User deleted successfully",
+  });
+};
 
 export const getAllUsers = async (
   req: Request,

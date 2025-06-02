@@ -20,6 +20,7 @@ async function seedAdmin() {
       name: "Super Admin",
       description: "Full access to all features",
       permissions: ["*"],
+      level: 100, // Highest level
     });
     console.log("Created Super Admin role");
   }

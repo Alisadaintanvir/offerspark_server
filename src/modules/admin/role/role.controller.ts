@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import createHttpError from "http-errors";
 import Role from "@/schemas/role.schema";
+import Admin from "@/schemas/admin.schema";
 
 // Get all roles
 export const getRoles = async (
@@ -94,6 +95,14 @@ export const deleteRole = async (
   const role = await Role.findById(id);
   if (!role) {
     return next(createHttpError(404, "Role not found"));
+  }
+
+  // Check if role is being used by any admin
+  const isRoleUsed = await Admin.countDocuments({ role: id });
+  console.log(`Role usage count: ${isRoleUsed}`);
+  // If role is used by any admin, prevent deletion
+  if (isRoleUsed > 0) {
+    return next(createHttpError(409, "Role is being used by an admin"));
   }
 
   // Delete the role

@@ -23,7 +23,12 @@ router.post(
   withErrorHandling(addUser)
 ); // POST /admin/user
 router.patch("/:id", withErrorHandling(updateUser)); // PATCH /admin/user/:id
-router.delete("/:id", withErrorHandling(deleteUser)); // DELETE /admin/user/:id
+router.delete(
+  "/:id",
+  authenticateToken,
+  checkPermissions([PERMISSIONS.USER.DELETE]),
+  withErrorHandling(deleteUser)
+); // DELETE /admin/user/:id
 router.get(
   "/",
   authenticateToken,
