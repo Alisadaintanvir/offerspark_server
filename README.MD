@@ -36,10 +36,12 @@ ALLOWED_ORIGIN=http://localhost:5173
 # Database
 MONGO_URI=mongodb://localhost:27017/offerspark
 
-#Session
-JWT_SECRET =offerspark
-JWT_EXPIRY=30d
+# Session
+JWT_SECRET=offerspark_access_token
+JWT_EXPIRY=15m
 COOKIE_NAME=accessToken
+REFRESH_TOKEN_SECRET=offerspark_refresh_token
+REFRESH_TOKEN_EXPIRY=7d
 ```
 
 ### Running the Server
@@ -94,6 +96,7 @@ yarn start
 - `yarn lint` - Lint the codebase
 - `yarn format` - Auto-fix lint issues
 - `yarn pretty` - Format code with Prettier
+- `yarn seed src/seeders/seedAdmin.ts` - Seed the admin user (you can replace the file path to run other seeders)
 
 ## License
 
